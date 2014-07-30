@@ -60,36 +60,9 @@ int pam(double* data, int n, int m, int* medoids, int k,
 	
 	
 	//1.Calculate dataCorr from data and medoids
-	/*if(outStream)*/ 
-	// #ifdef MEX
-		// mexPrintf("Computing correlations...\n");
-	// #endif
 	
-	// #ifdef MEX
-		// mexPrintf("Initial medoids\n");
-		// int index;
-		// for(index=0;index<k;index++)
-		// {
-			// mexPrintf("%d\t", medoids[index]);
-		// }
-		// mexPrintf("\n");
-	// #endif
-	
-	//corr(data, medoids, dataCorr);
 	pairwiseCorr(data, n, m, medoids, k, dataCorr, k);
-	/*if(outStream)*/ 
-	// #ifdef MEX
-		// mexPrintf("Initial dataCorr\n");
-		// for(index=0;index<n;index++)
-		// {
-			// mexPrintf("%.4lf\t%.4lf\t%.4lf\n", dataCorr[sub2ind(index,0,n,k,0)], dataCorr[sub2ind(index,1,n,k,0)], dataCorr[sub2ind(index,2,n,k,0)]);
-		// }
-	// #endif
-	
-	// #ifdef MEX
-		// mexPrintf("\bDone\n");
-	// #endif
-	
+		
 	if(log)
 	{
 		time(&now);
@@ -97,16 +70,10 @@ int pam(double* data, int n, int m, int* medoids, int k,
 		strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
 		fprintf(log, "%s - Done.\n", timeString);
 	}
-					//printf("initial correlation\n");
-					//gsl_matrix_fprintf(stdout, dataCorr, "%f");
-					//getchar();
+					
 	//2.Given dataCorr assign each object to the most correlated medoid
 	assign(dataCorr, n, k, clustering, correlation, objective);
-	// #ifdef MEX
-		// mexPrintf("Initial objective value %lf\n", *objective);
-		// mexEvalString("input('');");
-	// #endif
-	
+		
 	if(log)
 	{
 		time(&now);
@@ -140,37 +107,22 @@ int pam(double* data, int n, int m, int* medoids, int k,
 			
 			oldMedoidIdx = clustering[i];
 			oldMedoidVal = medoids[oldMedoidIdx];
+			
 			//swap medoid m with object i
 			neigh_medoids[oldMedoidIdx]=i;
 			corrVec = &dataCorr[oldMedoidIdx*n];
 			
 			//store correlations of current medoid
 			memcpy(oldMedoidCorr, corrVec, n * sizeof(double));
-							//printf("neighbor solution\n");
-							//gsl_vector_int_fprintf(stdout, neigh_medoids, "%d");
-							//getchar();
 			
 			//calculate correlation of potential new medoid
 			pairwiseCorr(data, n, m, &i, 1, corrVec, 1);
-									//printf("current correlation\n");
-									//gsl_matrix_fprintf(stdout, dataCorr, "%f");
-									//getchar();
+
 			assign(	dataCorr, n, k, neigh_clustering, neigh_correlation, 
 							&neigh_objective);
-									//printf("neigh assignment\n");
-									//gsl_vector_int_fprintf(stdout, neigh_clustering, "%d");
-									//getchar();
 								
-				// #ifdef MEX
-					// mexPrintf("Exchanging medoid %d with data object %d with an obj of %lf\n", oldMedoidIdx, i, neigh_objective);
-					// mexEvalString("input('');");
-				// #endif
 			if((neigh_objective - (best_neigh -> objective)) > eps)
 			{
-			// #ifdef MEX
-				// mexPrintf("Updating best neighbor");
-				// mexEvalString("input('');");
-			// #endif
 				best_neigh -> medoidIdx = oldMedoidIdx;
 				best_neigh -> newMedoid = i;
 				best_neigh -> objective = neigh_objective;
@@ -186,21 +138,12 @@ int pam(double* data, int n, int m, int* medoids, int k,
 		iterations++;
 		if(best_neigh -> updated)
 		{
-			// #ifdef MEX
-				// mexPrintf("Updating solution substituting medoid %d\n", best_neigh->medoidIdx);
-				// mexEvalString("input('');");
-			// #endif
-			//solution update
 			doNotSwap[medoids[best_neigh->medoidIdx]]=0;
 			doNotSwap[best_neigh->newMedoid]=1;
 			medoids[best_neigh->medoidIdx]=best_neigh->newMedoid;
 			corrVec = &dataCorr[best_neigh->medoidIdx * n];
 			memcpy(corrVec, best_neigh->newCorr, n * sizeof(double));
 			assign(dataCorr, n, k, clustering, correlation, objective);
-			// #ifdef MEX
-				// mexPrintf("Updating solution, new objective value %lf\n", *objective);
-				// mexEvalString("input('');");
-			// #endif
 			
 			if(log)
 			{
@@ -224,9 +167,6 @@ int pam(double* data, int n, int m, int* medoids, int k,
 	free(oldMedoidCorr);
 	free(doNotSwap);
 	neighbor_free(best_neigh);
-	// #ifdef MEX
-		// mexPrintf("Local minimum reached\n");
-	// #endif
 	
 	if(log)
 	{
