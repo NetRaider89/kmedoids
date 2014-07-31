@@ -1,47 +1,77 @@
 #include "internals.h"
 #include <stdlib.h>
 
-Neighbor* neighbor_alloc(int n)
+double evaluateSolution(double *dataset, int n, int m, int *medoids, int k, 
+												int *clustering, double *correlation, double *correlation2)
 {
-	Neighbor* neigh;
-	neigh = (Neighbor*) malloc(sizeof(Neighbor));
-	neigh -> newCorr = (double*)calloc(n, sizeof(double));
-	neigh -> medoidIdx = -1;
-	neigh -> newMedoid = -1;
-	neigh -> updated = 0;
-	neigh -> objective = -1 * n;
-	return neigh;
-}
-
-void neighbor_free(Neighbor* n)
-{
-	free(n -> newCorr);
-	free(n);
-	return;
-}
-
-void assign(double *dataCorr, int n, int k, int* clustering, 
-						double* correlation, double* objective)
-{
-	int i,j,bestIdx;
-	double bestVal;
+	int i, j;
 	
-	*objective=0.0;
-	for(i=0; i<n; i++)
+	double c, objective;
+	double *obj1, *obj2;
+	
+	objective = 0.0;
+	for(i = 0; i < n; i++)
 	{
-		bestIdx=0;
-		bestVal=dataCorr[i+bestIdx*n];
-		for(j=1; j<k; j++)
+		correlation[i] = correlation2[i] = -1;
+		for(j = 0; j < k; j++)
 		{
-			if(dataCorr[i+j*n] > bestVal)
+			obj1 = dataset + (i * m);
+			obj2 = dataset + (medoids[j] * m);
+			c = corr(obj1, obj2, m);
+			
+			if(c > correlation2[i])
 			{
-				bestIdx=j;
-				bestVal=dataCorr[i+j*n];
+				if(c > correlation[i])
+				{
+					correlation2[i] = correlation[i];
+					correlation[i] = c;
+					clustering[i] = j;
+				}
+				else
+				{
+					correlation2[i] = c;
+				}
 			}
 		}
-		clustering[i]=bestIdx;
-    correlation[i]=bestVal;
-    *objective += bestVal;
+		objective += correlation[i];
 	}
-	return;
+	return objective;
+}
+
+double evaluateNeighbor(double *dataset, int n, int m, int *medoids, int k, 
+												int *clustering, double *correlation, double *correlation2, 
+												int neigh)
+{
+	int i;
+	double *obj1, *obj2;
+	double c, value;
+	
+	value = 0.0;
+	for(i = 0; i < n; i++)
+	{
+		obj1 = dataset + (i * m);
+		obj2 = dataset + (neigh * m);
+		c = corr(obj1, obj2, m);
+		
+		if(clustering[i] == clustering[neigh])
+		{
+			if(c >= correlation2[i])
+			{
+				value += c - correlation[i];
+			}
+			else
+			{
+				value += correlation2[i] - correlation[i];
+			}
+		}
+		else
+		{
+			if(c > correlation[i])
+			{
+				value += c - correlation[i];
+			}
+		}
+	}
+	
+	return value;
 }

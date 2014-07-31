@@ -1,23 +1,11 @@
 #ifndef __PAM_INTERALS__
 	#define __PAM_INTERALS__
 	
-	struct _neighbor
-	{
-		int medoidIdx;
-		int newMedoid;
-		double objective;
-		int updated;
-		double* newCorr;
-	};
-
-	typedef struct _neighbor Neighbor;
-
-	Neighbor* neighbor_alloc(int n);
-	void neighbor_free(Neighbor*);
-		
-	void pairwiseCorr(double* data, int n, int m, int* idx, int idxSize, 
-										double* dataCorr, int k);
-
-	void assign(double *dataCorr, int n, int k, int* clustering, 
-							double* correlation, double* objective);
+	double evaluateSolution(double *dataset, int n, int m, int *medoids, int k,
+												int *clustering, double *correlation, double *correlation2);
+	
+	double evaluateNeighbor(double *dataset, int n, int m, int *medoids, int k,
+												int *clustering, double *correlation, double * correlation2, int neigh);
+	
+	double corr(double *obj1, double *obj2, int n);
 #endif
