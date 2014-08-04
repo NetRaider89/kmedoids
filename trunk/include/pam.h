@@ -12,8 +12,8 @@ objective:	output value of the objective function when the function
 				terminates
 */
 
-void loadVectorINT(FILE* f, char sep, int* vector, int n);
-void storeVectorINT(FILE* f, char sep, int* vector, int n);
+void loadVectorINT(FILE* f, char sep, int* vector, int n, int zeroBased);
+void storeVectorINT(FILE* f, char sep, int* vector, int n, int zeroBased);
 void loadVector(FILE* f, char sep, double* vector, int n);
 void storeVector(FILE* f, char sep, double* vector, int n);
 void storeMatrix(FILE* f, char sep, double* matrix, int n, int m);
@@ -21,4 +21,4 @@ void loadMatrix(FILE* f, char sep, double* matrix, int n, int m);
 
 int pam(double* data, int n, int m, int* medoids, int k, 
 				int* clustering, double* correlation, double* objective, 
-				double eps, double sampleSize, FILE *log);
+				double eps, double sampleSize, FILE *log, FILE *partial);

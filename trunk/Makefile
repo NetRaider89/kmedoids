@@ -35,7 +35,7 @@ build/pamCLI.o: src/pamCLI.c
 	$(CC) -c $^ -o $@ $(PAM_INCLUDE)
 
 build/%.o: src/%.c
-	$(CC) -c $^ -o $@
+	$(CC) -c $^ -o $@ $(PAM_INCLUDE)
 
 clean:
 	rm -rf bin/* build/*

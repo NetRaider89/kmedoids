@@ -40,13 +40,13 @@ void storeVector(FILE* f, char sep, double* vector, int n)
 	
 	for(i=0; i < (n-1); i++)
 	{
-		fprintf(f, "%lf%c", vector[i], sep);
+		fprintf(f, "%.17g%c", vector[i], sep);
 	}
-	fprintf(f, "%lf", vector[i]);
+	fprintf(f, "%.17g\n", vector[i]);
 	return;
 }
 
-void loadVectorINT(FILE* f, char sep, int* vector, int n)
+void loadVectorINT(FILE* f, char sep, int* vector, int n, int zeroBased)
 {
 	char buff[BUFF_SIZE];
 	char accumulator[ACC_SIZE];
@@ -63,6 +63,10 @@ void loadVectorINT(FILE* f, char sep, int* vector, int n)
 			{
 				accumulator[accIdx]='\0';
 				vector[idx]= (int) strtol(accumulator,NULL, 10);
+				if(!zeroBased)
+				{
+					vector[idx]--;
+				}
 				accIdx=0;
 				idx++;
 			}
@@ -76,15 +80,15 @@ void loadVectorINT(FILE* f, char sep, int* vector, int n)
 	return;
 }
 
-void storeVectorINT(FILE* f, char sep, int* vector, int n)
+void storeVectorINT(FILE* f, char sep, int* vector, int n, int zeroBased)
 {
 	int i;
 	
 	for(i=0; i < (n-1); i++)
 	{
-		fprintf(f, "%d%c", vector[i], sep);
+		fprintf(f, "%d%c", zeroBased ? vector[i] : vector[i] + 1 , sep);
 	}
-	fprintf(f, "%d", vector[i]);
+	fprintf(f, "%d\n", zeroBased ? vector[i] : vector[i] + 1);
 	return;
 }
 
@@ -130,10 +134,10 @@ void storeMatrix(FILE* f, char sep, double* matrix, int n, int m)
 		for(j=0; j<(m-1); j++)
 		{
 			idx=i*m+j;
-			fprintf(f, "%lf%c", matrix[idx], sep);
+			fprintf(f, "%.17g%c", matrix[idx], sep);
 		}
 		idx=i*m+j;
-		fprintf(f, "%lf\n", matrix[idx]);
+		fprintf(f, "%.17g\n", matrix[idx]);
 	}
 	return;
 }

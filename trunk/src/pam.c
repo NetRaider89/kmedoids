@@ -2,11 +2,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <pam.h>
 #include "internals.h"
 
 int pam(double* dataset, int n, int m, int* medoids, int k, 
 				int* clustering, double* correlation, double* objective, 
-				double eps, double sampleSize, FILE *log)
+				double eps, double sampleSize, FILE *log, FILE *partial)
 {
 	int iterations;
 	time_t now;
@@ -35,7 +36,7 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 		time(&now);
 		tm_info = localtime(&now);
 		strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
-		fprintf(log, "%s - Initial objective value %lf\n", 
+		fprintf(log, "%s - Initial objective value %.17g\n", 
 						timeString, *objective);
 	}
 	
@@ -71,7 +72,7 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 				bestIdx = clustering[i];
 			}
 		}
-		iterations++;
+
 		if(bestValue > eps)
 		{
 			doNotSwap[medoids[bestIdx]]=0;
@@ -86,7 +87,24 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 				time(&now);
 				tm_info = localtime(&now);
 				strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
-				fprintf(log, "%s - Updating solution, new objective value %lf\n", timeString,  *objective);
+				fprintf(log, "%s - Updating solution, new objective value %.17g\n", 
+								timeString,  *objective);
+			}
+			if(partial)
+			{
+				if(log)
+				{
+					time(&now);
+					tm_info = localtime(&now);
+					strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
+					fprintf(log, "%s - Saving intermediate results\n", timeString);
+				}
+			
+				fprintf(partial, "Iteration %d:\nMedoids\n", iterations);
+				storeVectorINT(partial, ',', medoids, k, 0);
+				fprintf(partial, "Clustering\n");
+				storeVectorINT(partial, ',', clustering, n, 0);
+				fprintf(partial, "\n");
 			}
 		}
 		else
@@ -94,6 +112,8 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 			//4.Return if no improvement
 			localOptimum=1;
 		}
+
+		iterations++;
 	}
 	free(doNotSwap);
 	free(correlation2);
