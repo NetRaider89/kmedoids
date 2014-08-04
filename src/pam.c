@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -5,9 +6,11 @@
 #include <pam.h>
 #include "internals.h"
 
+#define PROGRESS_WIDTH 50
+
 int pam(double* dataset, int n, int m, int* medoids, int k, 
 				int* clustering, double* correlation, double* objective, 
-				double eps, double sampleSize, FILE *log, FILE *partial)
+				double eps, double sampleSize, FILE *log, FILE *partial, int progress)
 {
 	int iterations;
 	time_t now;
@@ -21,6 +24,9 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 	double value, bestValue;
 	double *correlation2 = (double*)calloc(sizeof(double), n);
 	
+	float ratio;
+	int perc, count;
+
 	double r;
 	int* doNotSwap = (int*)calloc(sizeof(int), n);
 	for(i=0;i<k;i++)
@@ -71,6 +77,33 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 				best = i;
 				bestIdx = clustering[i];
 			}
+			if(progress)
+			{
+				//shows a text progress bar
+				ratio = ((float)i)/((float)(n-1));
+				perc = (int)(ratio * PROGRESS_WIDTH);
+
+				if(!((int)(ratio*100) % 10))
+				{
+					printf("\r\tIteration %d - %3d%%[", iterations, (int)(ratio*100));
+					for(count=0; count < perc; count++)
+					{
+						printf("=");
+					}
+					
+					for(count=perc; count < PROGRESS_WIDTH; count++)
+					{
+						printf(" ");
+					}
+					printf("]");
+					fflush(stdout);
+				}
+			}
+		}
+		
+		if(progress)
+		{
+			printf("\n");
 		}
 
 		if(bestValue > eps)
