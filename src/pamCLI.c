@@ -10,9 +10,11 @@
 //argv[3] dataset columns
 //argv[4] initialMedoids filename
 //argv[5] number of medoids
-//argv[6] Percentage of neighbours to check (CLARANS)
-//argv[7] minimum improvement accepted (eps)
-//argv[8] path of the report file
+//argv[6] medoids are zero based
+//argv[7] Percentage of neighbours to check (CLARANS)
+//argv[8] minimum improvement accepted (eps)
+//argv[9] path of the report file
+//argv[10] path of the partial solutions file
 
 int main(int argc, char** argv)
 {
@@ -22,6 +24,7 @@ int main(int argc, char** argv)
 	
 	int iters;
 	int n, m, k;
+	int zeroBased;
 	
 	double *dataset;
 	int *medoids;
@@ -32,8 +35,8 @@ int main(int argc, char** argv)
 	double sampleSize;
 	double eps;
 	
-	FILE *dataIn, *medoidsIn, *report;
-
+	FILE *dataIn, *medoidsIn, *report, *partial;
+	
 	n=(int) strtol(argv[2],NULL, 10);
 	m=(int) strtol(argv[3],NULL, 10);
 	k=(int) strtol(argv[5],NULL, 10);
@@ -46,7 +49,6 @@ int main(int argc, char** argv)
 	dataIn = fopen(argv[1], "r");
 	dataset=(double *)calloc(n*m, sizeof(double));
 	loadMatrix(dataIn, ',', dataset, n, m);
-	storeMatrix(dataIn, ',', dataset, n, m);
 	
 	time(&now);
 	tm_info = localtime(&now);
@@ -56,8 +58,9 @@ int main(int argc, char** argv)
 
 	medoidsIn = fopen(argv[4], "r");
 	medoids=(int *)calloc(k, sizeof(int));
-	loadVectorINT(medoidsIn, ',', medoids, k);
-	
+	zeroBased = (int) strtol(argv[6], NULL, 10);
+	loadVectorINT(medoidsIn, ',', medoids, k, zeroBased);
+
 	time(&now);
 	tm_info = localtime(&now);
 	strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
@@ -66,24 +69,26 @@ int main(int argc, char** argv)
 	clustering=(int *)calloc(n, sizeof(int));
 	correlation=(double *)calloc(n, sizeof(double));
 	
-	sampleSize = strtod(argv[6], NULL);
-	eps = strtod(argv[7], NULL);
-	
+	sampleSize = strtod(argv[7], NULL);
+	eps = strtod(argv[8], NULL);
+
+	partial=fopen(argv[10], "w");
 	fprintf(stdout, "%s - Clustering...\n", timeString);
-	iters = pam(dataset, n, m, medoids, k, clustering, correlation, &objective, eps, sampleSize, stdout);
+	iters = pam(dataset, n, m, medoids, k, clustering, correlation, &objective, 
+							eps, sampleSize, stdout, partial);
 	time(&now);
 	tm_info = localtime(&now);
 	strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
 	fprintf(stdout, "%s - Done, %d iterations.\n", timeString, iters);
 	
-	report=fopen(argv[8], "w");
+	report=fopen(argv[9], "w");
 	
 	fprintf(report, "Objective function:\n");
-	fprintf(report, "%lf\n\nOutput medoids:\n", objective);
-	storeVectorINT(report, ',', medoids, k);
-	fprintf(report, "\n\nClustering:\n");
-	storeVectorINT(report, ',', clustering, n);
-	fprintf(report, "\n\nCorrelation:\n");
+	fprintf(report, "%.17g\n\nOutput medoids:\n", objective);
+	storeVectorINT(report, ',', medoids, k, 0);
+	fprintf(report, "\nClustering:\n");
+	storeVectorINT(report, ',', clustering, n, 0);
+	fprintf(report, "\nCorrelation:\n");
 	storeVector(report, ',', correlation, n);
 	
 	free(dataset);
@@ -94,6 +99,7 @@ int main(int argc, char** argv)
 	fclose(dataIn);
 	fclose(medoidsIn);
 	fclose(report);
-	
+	fclose(partial);
+
 	return 0;
 }
