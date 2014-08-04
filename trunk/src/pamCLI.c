@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	partial=fopen(argv[10], "w");
 	fprintf(stdout, "%s - Clustering...\n", timeString);
 	iters = pam(dataset, n, m, medoids, k, clustering, correlation, &objective, 
-							eps, sampleSize, stdout, partial);
+							eps, sampleSize, stdout, partial,1);
 	time(&now);
 	tm_info = localtime(&now);
 	strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
