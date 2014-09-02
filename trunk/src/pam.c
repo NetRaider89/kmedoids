@@ -19,7 +19,7 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 	struct tm *tm_info;
 	
 	FILE *intsol;
-	char *intermediate_filename[FILENAME_LENGTH];
+	char intermediate_filename[FILENAME_LENGTH];
 	
 	int localOptimum;	
 	int i;
