@@ -14,7 +14,7 @@
 //argv[7] Percentage of neighbours to check (CLARANS)
 //argv[8] minimum improvement accepted (eps)
 //argv[9] path of the report file
-//argv[10] save intermediate solutions flag
+//argv[10] directory where to save intermediate solutions
 
 int main(int argc, char** argv)
 {
@@ -25,7 +25,6 @@ int main(int argc, char** argv)
 	int iters;
 	int n, m, k;
 	int zeroBased;
-	int intermediate;
 	
 	double *dataset;
 	int *medoids;
@@ -75,10 +74,10 @@ int main(int argc, char** argv)
 	sampleSize = strtod(argv[7], NULL);
 	eps = strtod(argv[8], NULL);
 	
-	intermediate = (int) strtol(argv[10], NULL, 10);
+	//intermediate = (int) strtol(argv[10], NULL, 10);
 	fprintf(stdout, "%s - Clustering...\n", timeString);
 	iters = pam(dataset, n, m, medoids, k, clustering, correlation, &objective, 
-							eps, sampleSize, stdout, intermediate,1);
+							eps, sampleSize, stdout, argv[10],1);
 	time(&now);
 	tm_info = localtime(&now);
 	strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);

@@ -11,7 +11,7 @@
 
 int pam(double* dataset, int n, int m, int* medoids, int k, 
 				int* clustering, double* correlation, double* objective, 
-				double eps, double sampleSize, FILE *log, int intermediate, int progress)
+				double eps, double sampleSize, FILE *log, char *intermediate, int progress)
 {
 	int iterations;
 	time_t now;
@@ -136,7 +136,7 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 					strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
 					fprintf(log, "%s - Saving intermediate results\n", timeString);
 				}
-				snprintf(intermediate_filename, FILENAME_LENGTH, "intermediate_solutions/iteration_%d", iterations);
+				snprintf(intermediate_filename, FILENAME_LENGTH, "%s/iteration_%d", intermediate, iterations);
 				intsol = fopen(intermediate_filename, "w");
 				fprintf(intsol, "Iteration %d:\nMedoids\n", iterations);
 				storeVectorINT(intsol, ',', medoids, k, 0);

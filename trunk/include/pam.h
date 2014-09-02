@@ -21,4 +21,4 @@ void loadMatrix(FILE* f, char sep, double* matrix, int n, int m);
 
 int pam(double* data, int n, int m, int* medoids, int k, 
 				int* clustering, double* correlation, double* objective, 
-				double eps, double sampleSize, FILE *log, int intermediate, int progress);
+				double eps, double sampleSize, FILE *log, char *intermediate, int progress);
