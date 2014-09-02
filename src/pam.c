@@ -7,15 +7,19 @@
 #include "internals.h"
 
 #define PROGRESS_WIDTH 50
+#define FILENAME_LENGTH 256
 
 int pam(double* dataset, int n, int m, int* medoids, int k, 
 				int* clustering, double* correlation, double* objective, 
-				double eps, double sampleSize, FILE *log, FILE *partial, int progress)
+				double eps, double sampleSize, FILE *log, int intermediate, int progress)
 {
 	int iterations;
 	time_t now;
 	char timeString[17];
 	struct tm *tm_info;
+	
+	FILE *intsol;
+	char *intermediate_filename[FILENAME_LENGTH];
 	
 	int localOptimum;	
 	int i;
@@ -123,7 +127,7 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 				fprintf(log, "%s - Updating solution, new objective value %.17g\n", 
 								timeString,  *objective);
 			}
-			if(partial)
+			if(intermediate)
 			{
 				if(log)
 				{
@@ -132,12 +136,14 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 					strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
 					fprintf(log, "%s - Saving intermediate results\n", timeString);
 				}
-			
-				fprintf(partial, "Iteration %d:\nMedoids\n", iterations);
-				storeVectorINT(partial, ',', medoids, k, 0);
-				fprintf(partial, "Clustering\n");
-				storeVectorINT(partial, ',', clustering, n, 0);
-				fprintf(partial, "\n");
+				snprintf(intermediate_filename, FILENAME_LENGTH, "intermediate_solutions/iteration_%d", iterations);
+				intsol = fopen(intermediate_filename, "w");
+				fprintf(intsol, "Iteration %d:\nMedoids\n", iterations);
+				storeVectorINT(intsol, ',', medoids, k, 0);
+				fprintf(intsol, "Clustering\n");
+				storeVectorINT(intsol, ',', clustering, n, 0);
+				fprintf(intsol, "\n");
+				fclose(intsol);
 			}
 		}
 		else
