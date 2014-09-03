@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 #include <pam.h>
 #include "internals.h"
 
+#define THREADS 8
 #define PROGRESS_WIDTH 50
 #define FILENAME_LENGTH 256
 
@@ -13,6 +15,9 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 				int* clustering, double* correlation, double* objective, 
 				double eps, double sampleSize, FILE *log, char *intermediate, int progress)
 {
+	int seeds[THREADS];
+	
+
 	int iterations;
 	time_t now;
 	char timeString[17];
@@ -24,6 +29,8 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 	int localOptimum;	
 	int i;
 	
+	int thread_best, thread_bestIdx;
+	double thread_bestValue;
 	int best, bestIdx;
 	double value, bestValue;
 	double *correlation2 = (double*)calloc(sizeof(double), n);
@@ -33,12 +40,19 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 
 	double r;
 	int* doNotSwap = (int*)calloc(sizeof(int), n);
+	
+	
 	for(i=0;i<k;i++)
 	{
 		doNotSwap[medoids[i]]=1;
 	}
 	
 	srand(time(NULL));
+	for(i=0; i < THREADS; i++)
+	{
+		seeds[i]=rand();
+	}
+	
 	*objective = 	evaluateSolution(dataset, n, m, medoids, k, clustering,
 								correlation, correlation2);
 	if(log)
@@ -49,7 +63,6 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 		fprintf(log, "%s - Initial objective value %.17g\n", 
 						timeString, *objective);
 	}
-	
 	//Iteratively until no improvement of the objective function
 	//search in the neghborhood of the current solution a better feasible 
 	//solution and update current state.
@@ -65,23 +78,27 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 	//3.Search in the neighborhood to improve the objective function
 	while(!localOptimum)
 	{
-		bestValue = -150;
-		best = -1;
-		bestIdx = -1;
+		thread_bestValue = bestValue = -150;
+		thread_best = best = -1;
+		thread_bestIdx = bestIdx = -1;
+	#pragma omp parallel num_threads(8) private(i, r, value) firstprivate(thread_best, thread_bestIdx, thread_bestValue) //sharing clauses
+	{
+		#pragma omp for schedule(static, 1000)//scheduling clauses
 		for(i=0; i < n; i++)
 		{
 			if(doNotSwap[i]) continue;
-			r = rand() / (RAND_MAX + 1.0);
+			r = rand_r(&seeds[omp_get_thread_num()]) / (RAND_MAX + 1.0);
 			if(r > sampleSize) continue;
 			value = evaluateNeighbor(dataset, n, m, medoids, k, clustering,
 							correlation, correlation2, i);
-			if(value > bestValue)
+			if(value > thread_bestValue)
 			{
-				bestValue = value;
-				best = i;
-				bestIdx = clustering[i];
+				thread_bestValue = value;
+				thread_best = i;
+				thread_bestIdx = clustering[i];
 			}
-			if(progress)
+			
+			/*if(progress)
 			{
 				//shows a text progress bar
 				ratio = ((float)i)/((float)(n-1));
@@ -102,14 +119,24 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 					printf("]");
 					fflush(stdout);
 				}
-			}
-		}
-		
-		if(progress)
-		{
-			printf("\n");
+			}*/
 		}
 
+		#pragma omp critical
+		{
+			if(thread_bestValue > bestValue)
+			{
+				bestValue = thread_bestValue;
+				best = thread_best;
+				bestIdx = thread_bestIdx;
+			}
+		}
+	}// end omp parallel
+		
+		/*if(progress)
+		{
+			printf("\n");
+		}*/
 		if(bestValue > eps)
 		{
 			doNotSwap[medoids[bestIdx]]=0;
