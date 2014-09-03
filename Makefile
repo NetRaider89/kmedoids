@@ -18,7 +18,7 @@ TMW_CFLAGS=-c -DMATLAB_MEX_FILE -D_GNU_SOURCE  -fexceptions -fPIC -fno-omit-fram
 all: pamCLI pam.mexa64
 
 pamCLI: bin/libPAM.a build/pamCLI.o
-	$(CC) build/pamCLI.o -o bin/pamCLI $(PAM_LDFLAGS) -lm
+	$(CC) build/pamCLI.o -o bin/pamCLI $(PAM_LDFLAGS) -lm -fopenmp
 
 pam.mexa64: build/mexFunction.o bin/libPAM.a
 	mkdir -p bin/Matlab
@@ -35,7 +35,7 @@ build/pamCLI.o: src/pamCLI.c
 	$(CC) -c $^ -o $@ $(PAM_INCLUDE)
 
 build/%.o: src/%.c
-	$(CC) -c $^ -o $@ $(PAM_INCLUDE)
+	$(CC) -c $^ -o $@ $(PAM_INCLUDE) -fopenmp
 
 clean:
 	rm -rf bin/* build/*
