@@ -150,7 +150,7 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 				tm_info = localtime(&now);
 				strftime(timeString, 17, "%d/%m/%Y %H:%M", tm_info);
 				fprintf(log, "%s - Updating solution, new objective value %.17g\n", 
-								timeString,  *objective);
+								timeString,  *objective+bestValue);
 			}
 			
 			//smarter update
