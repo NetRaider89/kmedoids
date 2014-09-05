@@ -7,9 +7,8 @@
 #include <pam.h>
 #include "internals.h"
 
-#define SCHEME guided
 #define CHUNKSIZE 3000
-#define THREADS 6
+#define THREADS 3
 #define PROGRESS_WIDTH 50
 #define FILENAME_LENGTH 256
 
@@ -85,7 +84,7 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 		thread_bestIdx = bestIdx = -1;
 	#pragma omp parallel num_threads(THREADS) private(i, r, value) firstprivate(thread_best, thread_bestIdx, thread_bestValue) //sharing clauses
 	{
-		#pragma omp for schedule(SCHEME, CHUNKSIZE)//scheduling clauses
+		#pragma omp for schedule(guided, 3000)//scheduling clauses
 		for(i=0; i < n; i++)
 		{
 			if(doNotSwap[i]) continue;
@@ -144,9 +143,6 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 			doNotSwap[medoids[bestIdx]]=0;
 			doNotSwap[best]=1;
 			medoids[bestIdx]=best;
-			//smarter update
-			*objective = 	evaluateSolution(dataset, n, m, medoids, k, clustering,
-								correlation, correlation2);
 			
 			if(log)
 			{
@@ -156,6 +152,11 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 				fprintf(log, "%s - Updating solution, new objective value %.17g\n", 
 								timeString,  *objective);
 			}
+			
+			//smarter update
+			*objective = 	evaluateSolution(dataset, n, m, medoids, k, clustering,
+								correlation, correlation2);
+			
 			if(intermediate)
 			{
 				if(log)
