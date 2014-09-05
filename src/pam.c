@@ -7,7 +7,9 @@
 #include <pam.h>
 #include "internals.h"
 
-#define THREADS 8
+#define SCHEME guided
+#define CHUNKSIZE 3000
+#define THREADS 6
 #define PROGRESS_WIDTH 50
 #define FILENAME_LENGTH 256
 
@@ -81,9 +83,9 @@ int pam(double* dataset, int n, int m, int* medoids, int k,
 		thread_bestValue = bestValue = -150;
 		thread_best = best = -1;
 		thread_bestIdx = bestIdx = -1;
-	#pragma omp parallel num_threads(8) private(i, r, value) firstprivate(thread_best, thread_bestIdx, thread_bestValue) //sharing clauses
+	#pragma omp parallel num_threads(THREADS) private(i, r, value) firstprivate(thread_best, thread_bestIdx, thread_bestValue) //sharing clauses
 	{
-		#pragma omp for schedule(static, 1000)//scheduling clauses
+		#pragma omp for schedule(SCHEME, CHUNKSIZE)//scheduling clauses
 		for(i=0; i < n; i++)
 		{
 			if(doNotSwap[i]) continue;
