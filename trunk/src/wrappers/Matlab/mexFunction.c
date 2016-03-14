@@ -61,7 +61,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[])
 	mexPrintf("Done\n");
 	mexEvalString("drawnow;");
 	//computational routine
-	iters = pam(data, n, m, medoids, k, clustering, correlation, &objective);
+	iters = pam(data, n, m, medoids, k, clustering, correlation, &objective, 0, 1.0, NULL, NULL, 0);
 	
 	//objective
 	plhs[3] = mxCreateDoubleScalar(objective);
