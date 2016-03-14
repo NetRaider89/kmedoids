@@ -15,7 +15,7 @@ AR=ar
 TMW_INCLUDE=-I$(TMW_ROOT)/extern/include -I$(TMW_ROOT)/simulink/include $(PAM_INCLUDE)
 TMW_CFLAGS=-c -DMATLAB_MEX_FILE -D_GNU_SOURCE  -fexceptions -fPIC -fno-omit-frame-pointer -pthread -DMX_COMPAT_32 -O -DNDEBUG $(TMW_INCLUDE)
 
-all: pamCLI pam.mexw64
+all: folders pamCLI pam.mexw64
 
 pamCLI: bin/libPAM.a build/pamCLI.o
 	$(CC) build/pamCLI.o -o bin/pamCLI.exe $(PAM_LDFLAGS) -lm
@@ -35,5 +35,12 @@ build/pamCLI.o: src/pamCLI.c
 build/%.o: src/%.c
 	$(CC) -c $^ -o $@ $(PAM_INCLUDE)
 
+.PHONY: folders clean
+
+folders: 
+	if not exist bin mkdir bin 
+	if not exist build mkdir build
+	if not exist "bin\Matlab" mkdir bin\Matlab
+
 clean:
-	rm -rf bin/* build/*
+	rd /S /Q bin build
